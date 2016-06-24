@@ -78,6 +78,7 @@ public class CrimeListFragment extends Fragment {
         else
         {
             mAdapter.notifyItemChanged(pos);
+            mAdapter.setCrimes(crimes);
             //mAdapter.notifyDataSetChanged();
         }
     }
@@ -149,6 +150,11 @@ public class CrimeListFragment extends Fragment {
         public int getItemCount()
         {
             return mCrimes.size();
+        }
+
+        public void setCrimes(List<Crime> crimes)
+        {
+            mCrimes=crimes;
         }
     }
     @Override
