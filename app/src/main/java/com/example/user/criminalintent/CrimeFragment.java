@@ -2,8 +2,11 @@ package com.example.user.criminalintent;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 
 import java.text.ParseException;
@@ -39,9 +42,11 @@ public class CrimeFragment extends Fragment {
     private CheckBox mSolvedCheckBox;
     private Button mDateButton;
     private Button mReportButton;
+    private Button mSuspectButton;
     public static final String ARG_CRIME_ID="crime id";
     private static final String DIALOG_DATE="DialogDate";
     private static final int REQUEST_DATE=0;
+    private static final int REQUEST_CONTACT=1;
 
 
     @Override
@@ -120,6 +125,27 @@ public class CrimeFragment extends Fragment {
                 startActivity(intent);
             }
         });
+
+        final Intent pickContact=new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        //pickContact.addCategory(Intent.CATEGORY_HOME);
+        mSuspectButton=(Button) v.findViewById(R.id.crime_suspect);
+        mSuspectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivityForResult(pickContact,REQUEST_CONTACT);
+            }
+        });
+        if(mCrime.getSuspect()!=null)
+        {
+            mSuspectButton.setText(mCrime.getSuspect());
+        }
+
+        PackageManager packageManager=getActivity().getPackageManager();
+        if(packageManager.resolveActivity(pickContact,PackageManager.MATCH_DEFAULT_ONLY)==null)
+        {
+            mSuspectButton.setEnabled(false);
+        }
+
         return v;
     }
     @Override
@@ -133,6 +159,24 @@ public class CrimeFragment extends Fragment {
             SimpleDateFormat format = new SimpleDateFormat("MMM dd,yyyy hh:mm a");
             String mDateString = format.format(mCrime.getDate());
             updateDate(mDateString);
+        } else if (requestCode == REQUEST_CONTACT && data != null) {
+            Uri contactUri = data.getData();
+            String[] queryFields = new String[]{
+                    ContactsContract.Contacts.DISPLAY_NAME
+            };
+            Cursor cursor = getActivity().getContentResolver().query(contactUri, queryFields, null, null, null);
+            try {
+                if (cursor.getCount() == 0) {
+                    return;
+                }
+                cursor.moveToFirst();
+                String suspect = cursor.getString(0);
+                mCrime.setSuspect(suspect);
+                mSuspectButton.setText(suspect);
+
+            } finally {
+                cursor.close();
+            }
         }
     }
 
