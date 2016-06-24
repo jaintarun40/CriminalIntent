@@ -38,6 +38,7 @@ public class CrimeFragment extends Fragment {
     private EditText mTitleField;
     private CheckBox mSolvedCheckBox;
     private Button mDateButton;
+    private Button mReportButton;
     public static final String ARG_CRIME_ID="crime id";
     private static final String DIALOG_DATE="DialogDate";
     private static final int REQUEST_DATE=0;
@@ -107,6 +108,18 @@ public class CrimeFragment extends Fragment {
 
             }
         });
+
+        mReportButton=(Button) v.findViewById(R.id.crime_report);
+        mReportButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(Intent.ACTION_SEND);
+                intent.setType("text/plain");
+                intent.putExtra(Intent.EXTRA_TEXT,getCrimeReport());
+                intent.putExtra(Intent.EXTRA_SUBJECT,getString(R.string.crime_report_subject));
+                startActivity(intent);
+            }
+        });
         return v;
     }
     @Override
@@ -125,6 +138,26 @@ public class CrimeFragment extends Fragment {
 
     private void updateDate(String text) {
         mDateButton.setText(text);
+    }
+
+    private String getCrimeReport() {
+        String solvedString = null;
+        if (mCrime.isSolved()) {
+            solvedString = getString(R.string.crime_report_solved);
+        } else {
+            solvedString = getString(R.string.crime_report_unsolved);
+        }
+        String dateFormat = "EEE, MMM dd";
+        String dateString = DateFormat.format(dateFormat, mCrime.getDate()).toString();
+        String suspect = mCrime.getSuspect();
+        if (suspect == null) {
+            suspect = getString(R.string.crime_report_no_suspect);
+        } else {
+            suspect = getString(R.string.crime_report_suspect, suspect);
+        }
+        String report = getString(R.string.crime_report,
+                mCrime.getTitle(), dateString, solvedString, suspect);
+        return report;
     }
 
     @Override
